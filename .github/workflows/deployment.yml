@@ -1,0 +1,60 @@
+name: Deploy Terraform to HCP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.tf'
+      - '**.tfvars'
+      - '.github/workflows/deployment.yml'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: 'us-east-2'
+  HCP_TERRAFORM_ORG: enpicie
+  HCP_TERRAFORM_WORKSPACE: aws-infra
+  HCP_TERRAFORM_PROJECT: AWS-Infrastructure
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup HCP Terraform Workspace
+        id: setup_workspace
+        uses: chzylee/action-workflow-hcp-terraform-workspace-setup@v1.1.0
+        with:
+          tfc_organization: ${{ env.HCP_TERRAFORM_ORG }}
+          tfc_workspace: ${{ env.HCP_TERRAFORM_WORKSPACE }}
+          tfc_project: ${{ env.HCP_TERRAFORM_PROJECT }}
+          tfc_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Attach IAM Permissions Variable Set to this Workspace
+        uses: chzylee/action-workflow-hcp-terraform-var-set-attach@v1.0.1
+        with:
+          tfc_organization: ${{ env.HCP_TERRAFORM_ORG }}
+          tfc_workspace_id: ${{ steps.setup_workspace.outputs.workspace_id }}
+          tfc_token: ${{ secrets.TF_API_TOKEN }}
+          var_set_name: ${{ vars.AWS_TF_ROLE_VARSET_AWS_INFRA_ADMIN}}
+
+      - name: Deploy Config via HCP Terraform
+        uses: chzylee/action-workflow-hcp-terraform-run@v1.1.1
+        with:
+          terraform_directory: ./ # Action run from context of the repository root
+          tfc_organization: ${{ env.HCP_TERRAFORM_ORG }}
+          tfc_workspace: ${{ env.HCP_TERRAFORM_WORKSPACE }}
+          tfc_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Push Org Variable for Variable Set to Owning Org
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_PAT }}
+          VAR_NAME: AWS_TF_ROLE_VARSET_LAMB_APIGW
+          VAR_VALUE: 'AWS HCP TF OIDC Role - Lambda+APIGateway Perms'
+          ORG_NAME: ${{ github.repository_owner }}
+        run: |
+          echo "Setting org-level variable '$VAR_NAME' in org '$ORG_NAME'..."
+          gh variable set "$VAR_NAME" \
+            --org "$ORG_NAME" \
+            --body "$VAR_VALUE" \
+            --visibility all
