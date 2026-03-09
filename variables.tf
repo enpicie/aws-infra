@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region to deploy into."
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
 }
 
 variable "name" {
@@ -16,7 +16,7 @@ variable "cidr_block" {
 }
 
 variable "azs" {
-  description = "List of availability zone names to deploy into (e.g. [\"us-east-1a\", \"us-east-1b\"])."
+  description = "List of availability zone names to deploy into (e.g. [\"us-east-2a\", \"us-east-2b\"])."
   type        = list(string)
 }
 
@@ -64,10 +64,6 @@ variable "enable_cloudwatch_endpoint" {
   default     = true
 }
 
-variable "domain_name" {
-  description = "Root domain name managed by Route53 (e.g. example.com). Used for the hosted zone and wildcard ACM certificate."
-  type        = string
-}
 
 variable "tags" {
   description = "Additional tags to merge onto all resources."

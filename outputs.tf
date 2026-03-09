@@ -142,26 +142,3 @@ output "alb_security_group_id" {
   value       = aws_security_group.alb.id
 }
 
-output "alb_https_listener_arn" {
-  description = "ARN of the HTTPS listener. App repos attach listener rules to this to route traffic to their target groups."
-  value       = aws_lb_listener.https.arn
-}
-
-# ------------------------------------------------------------
-# DNS / ACM
-# ------------------------------------------------------------
-
-output "route53_zone_id" {
-  description = "ID of the Route53 hosted zone."
-  value       = aws_route53_zone.this.zone_id
-}
-
-output "route53_zone_name" {
-  description = "Name of the Route53 hosted zone."
-  value       = aws_route53_zone.this.name
-}
-
-output "acm_certificate_arn" {
-  description = "ARN of the wildcard ACM certificate. Can be attached to additional listeners or CloudFront distributions."
-  value       = aws_acm_certificate_validation.this.certificate_arn
-}
