@@ -1,5 +1,5 @@
 aws_region = "us-east-2"
-name       = "personal"
+name       = "enpicie" # Used for enpicie org
 
 cidr_block = "10.0.0.0/16"
 
