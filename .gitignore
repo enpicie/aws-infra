@@ -27,3 +27,6 @@ terraform.rc
 
 # Ignore Mac system files
 .DS_Store
+
+# Claude
+.claude/
