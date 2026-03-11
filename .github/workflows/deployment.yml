@@ -25,3 +25,4 @@ jobs:
           aws_role_arn: ${{ secrets.AWS_ROLE_ARN_TF_INFRA_DEPLOY }}
           state_key: aws-infra/infra.tfstate
           aws_region: us-east-2
+          tf_directory: ./terraform
