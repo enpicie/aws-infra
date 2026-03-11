@@ -1,8 +1,18 @@
 # aws-infra
 
-Terraform configuration for shared AWS platform infrastructure. Provisions the foundational layer that application repos deploy on top of — VPC networking, ECS cluster, and ALB. State is managed via HCP Terraform.
+Terraform configuration for shared AWS platform infrastructure. Provisions the foundational layer that application repos deploy on top of — VPC networking, ECS cluster, and ALB. State is stored in S3 with DynamoDB locking.
 
 Route53 hosted zones and ACM certificates are managed per-app in their own repos, not here.
+
+## Core infrastructure
+
+| Entity | What it is |
+| --- | --- |
+| **VPC** | A single VPC with public and private subnets spread across two AZs. Public subnets host the ALB and NAT Gateway. Private subnets host ECS Fargate tasks and are not reachable from the internet. |
+| **NAT Gateway** | Deployed in a public subnet (single, shared across AZs by default). Gives private subnets outbound internet access. |
+| **VPC Endpoints** | S3 gateway endpoint (free, attached to all route tables) plus optional interface endpoints for ECR and CloudWatch Logs. Keeps that traffic on the AWS private backbone and off the NAT Gateway. |
+| **ECS Cluster** | A shared Fargate cluster with Container Insights enabled. Registers both `FARGATE` and `FARGATE_SPOT` capacity providers — app repos choose the strategy per service. |
+| **Application Load Balancer** | A single internet-facing ALB in the public subnets. No listeners are provisioned here; app repos attach their own listeners, listener rules, and ACM certificates. |
 
 ## File reference
 
