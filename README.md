@@ -13,6 +13,7 @@ Route53 hosted zones and ACM certificates are managed per-app in their own repos
 | **VPC Endpoints** | S3 gateway endpoint (free, attached to all route tables) plus optional interface endpoints for ECR and CloudWatch Logs. Keeps that traffic on the AWS private backbone and off the NAT Gateway. |
 | **ECS Cluster** | A shared Fargate cluster with Container Insights enabled. Registers both `FARGATE` and `FARGATE_SPOT` capacity providers — app repos choose the strategy per service. |
 | **Application Load Balancer** | A single internet-facing ALB in the public subnets. No listeners are provisioned here; app repos attach their own listeners, listener rules, and ACM certificates. |
+| **WAF Web ACL** | Regional WAF attached to the ALB. Blocks any single IP that exceeds 300 requests per 5-minute window (~60 req/min), providing a safety margin below the start.gg API limit of 80 req/min. |
 
 ## File reference
 
@@ -69,6 +70,15 @@ The shared public entry point for all services. App repos attach their own liste
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `aws_security_group.alb` | Allows inbound HTTP (80) and HTTPS (443) from the internet. Allows all outbound to reach ECS tasks. App repos reference this SG ID to allow traffic into their ECS tasks. |
 | `aws_lb.this`            | Internet-facing ALB placed in public subnets. No listeners are provisioned here — app repos own their listeners and listener rules.                                     |
+
+---
+
+### [`waf.tf`](terraform/waf.tf) — WAF rate limiting
+
+| Resource | Description |
+| --- | --- |
+| `aws_wafv2_web_acl.alb` | Regional Web ACL with a rate-based rule. Blocks IPs that exceed 300 requests in a 5-minute window (~60 req/min). Default action is allow; only matched IPs are blocked. CloudWatch metrics enabled. |
+| `aws_wafv2_web_acl_association.alb` | Associates the Web ACL with the ALB. |
 
 ---
 
